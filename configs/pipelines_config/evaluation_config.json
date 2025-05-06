@@ -1,0 +1,4 @@
+{
+    "classifier_config_path": "configs/classifier_config.json",
+    "best_model_path": "models/best_model.pth"
+}

@@ -1,0 +1,9 @@
+{
+    "bert_model": "bert-base-uncased",
+    "tokenizer": "bert-base-uncased",
+    "criterion": "cross-entropy",
+    "optimizer": "adamW",
+    "learning_rate": 5e-5,
+    "epochs": 4,
+    "dropout": 0
+}

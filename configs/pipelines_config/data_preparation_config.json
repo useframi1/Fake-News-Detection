@@ -1,0 +1,19 @@
+{
+    "data_path": "data/sampled_dataset.csv",
+    "content_column": "combined_texts",
+    "label_column": "label",
+    "do_sampling": false,
+    "sample_size": 10,
+    "label_mapping": {
+        "reliable": 0,
+        "bias": 1,
+        "conspiracy": 2,
+        "fake": 3,
+        "rumor": 4,
+        "unreliable": 5,
+        "other": 6
+    },
+    "test_size": 0.1,
+    "val_size": 0.1,
+    "random_state": 42
+}

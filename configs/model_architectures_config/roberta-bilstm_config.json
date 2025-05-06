@@ -1,0 +1,13 @@
+{
+    "roberta_model": "roberta-base",
+    "tokenizer": "roberta-base",
+    "criterion": "cross-entropy",
+    "optimizer": "adamW",
+    "learning_rate": 5e-5,
+    "epochs": 6,
+    "hidden_size": 768,
+    "num_layers": 1,
+    "roberta_dropout": 0.1,
+    "lstm_out_dropout": 0.3,
+    "weight_decay": 0.01
+}

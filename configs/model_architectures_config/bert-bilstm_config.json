@@ -1,0 +1,18 @@
+{
+    "bert_model": "bert-base-uncased",
+    "tokenizer": "bert-base-uncased",
+    "criterion": "cross-entropy",
+    "optimizer": "adamW",
+    "learning_rate": 5e-5,
+    "epochs": 10,
+    "hidden_size": 768,
+    "num_layers": 1,
+    "bert_dropout": 0.2,
+    "lstm_out_dropout": 0.3,
+    "weight_decay": 1e-3,
+    "lr_scheduler": {
+        "mode": "max",
+        "patience": 2,
+        "factor": 0.1
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "model_name": "bert-bilstm",
+    "model_config_path": "configs/model_architectures_config/{model_name}_config.json",
+    "model_path": "models/{model_name}.pth",
+    "loader_batch_size": 16
+}
