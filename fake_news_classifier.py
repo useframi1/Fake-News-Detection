@@ -17,6 +17,7 @@ from utils.utils import (
 )
 from utils.fgm import FGM
 from datetime import datetime
+from tqdm import tqdm
 
 
 class FakeNewsClassifier:
@@ -64,7 +65,7 @@ class FakeNewsClassifier:
             train_dataset,
             batch_size=self.config["loader_batch_size"],
             shuffle=True,
-            pin_memory=True,
+            pin_memory=False,
             num_workers=4,
         )
 
@@ -76,7 +77,7 @@ class FakeNewsClassifier:
             val_dataset,
             batch_size=self.config["loader_batch_size"],
             shuffle=False,
-            pin_memory=True,
+            pin_memory=False,
             num_workers=4,
         )
 
@@ -85,9 +86,12 @@ class FakeNewsClassifier:
     def __train_phase(self, train_loader, device):
         self.classifier.train()
         total_loss, total_correct = 0, 0
-        batch_count = 0
 
-        for batch in train_loader:
+        progress_bar = tqdm(
+            train_loader, desc="Training", leave=True, dynamic_ncols=True
+        )
+
+        for batch in progress_bar:
             input_ids, attention_mask, token_type_ids, labels = (
                 batch["input_ids"].to(device),
                 batch["attention_mask"].to(device),
@@ -112,13 +116,15 @@ class FakeNewsClassifier:
             total_loss += loss.item()
             total_correct += (outputs.argmax(dim=1) == labels).sum().item()
 
-            batch_count += 1
-            if batch_count % 100 == 0:
-                print(f"Batch {batch_count}/{len(train_loader)}")
+            avg_loss = total_loss / (progress_bar.n + 1)
+            avg_acc = total_correct / ((progress_bar.n + 1) * train_loader.batch_size)
+
+            progress_bar.set_postfix(loss=avg_loss, acc=avg_acc)
+
+        progress_bar.close()
 
         total_loss /= len(train_loader)
         train_acc = total_correct / len(train_loader.dataset)
-        print(f"Train Loss: {total_loss:.4f}, Train Acc: {train_acc:.4f}")
 
         return train_acc
 
@@ -126,8 +132,12 @@ class FakeNewsClassifier:
         self.classifier.eval()
         val_loss, val_correct = 0, 0
 
+        progress_bar = tqdm(
+            val_loader, desc="Validating", leave=True, dynamic_ncols=True
+        )
+
         with torch.no_grad():
-            for batch in val_loader:
+            for batch in progress_bar:
                 input_ids, attention_mask, token_type_ids, labels = (
                     batch["input_ids"].to(device),
                     batch["attention_mask"].to(device),
@@ -141,9 +151,15 @@ class FakeNewsClassifier:
                 val_loss += loss.item()
                 val_correct += (outputs.argmax(dim=1) == labels).sum().item()
 
+                avg_loss = val_loss / (progress_bar.n + 1)
+                avg_acc = val_correct / ((progress_bar.n + 1) * val_loader.batch_size)
+
+                progress_bar.set_postfix(loss=avg_loss, acc=avg_acc)
+
+        progress_bar.close()
+
         val_loss /= len(val_loader)
         val_acc = val_correct / len(val_loader.dataset)
-        print(f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
 
         return val_acc
 
@@ -171,7 +187,6 @@ class FakeNewsClassifier:
             if val_loader is not None:
                 val_acc = self.__validate_phase(val_loader, self.device)
                 self.scheduler.step(val_acc)
-                print(f"Learning rate: {self.scheduler.get_last_lr()}")
 
                 self.history.loc[len(self.history)] = {
                     "epoch": epoch + 1,
@@ -186,7 +201,11 @@ class FakeNewsClassifier:
 
             epoch_time = (datetime.now() - start_time).total_seconds() / 60
 
+            print(
+                f"\nTraining Accuracy: {train_acc:.4f}\t{f"Validation Accuracy: {val_acc:.4f}" if val_loader else ''}\n"
+            )
             print(f"Epoch took {epoch_time:.2f} minutes to complete")
+            print(f"Learning Rate: {self.scheduler.get_last_lr()[0]}")
 
             print("=" * 25)
 
@@ -196,7 +215,7 @@ class FakeNewsClassifier:
             test_dataset,
             batch_size=self.config["loader_batch_size"],
             shuffle=False,
-            pin_memory=True,
+            pin_memory=False,
             num_workers=4,
         )
 
@@ -205,8 +224,10 @@ class FakeNewsClassifier:
         self.classifier.eval()
         torch.cuda.empty_cache()
 
+        progress_bar = tqdm(test_loader, desc="Testing", leave=True, dynamic_ncols=True)
+
         with torch.no_grad():
-            for batch in test_loader:
+            for batch in progress_bar:
                 input_ids, attention_mask, token_type_ids = (
                     batch["input_ids"].to(self.device),
                     batch["attention_mask"].to(self.device),
@@ -214,6 +235,8 @@ class FakeNewsClassifier:
                 )
                 outputs = self.classifier(input_ids, attention_mask, token_type_ids)
                 predictions.extend(outputs.argmax(dim=1).cpu().tolist())
+
+            progress_bar.close()
 
         return predictions
 

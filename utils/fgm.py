@@ -7,7 +7,6 @@ class FGM:
         self.epsilon = epsilon
         self.backup = {}
         self.emb_name = self._auto_detect_emb_name()
-        print(f"Embedding parameter detected: {self.emb_name}")
 
     def _auto_detect_emb_name(self):
         # Try to auto-detect the embedding weight name (e.g., 'bert.embeddings.word_embeddings.weight')
@@ -17,7 +16,6 @@ class FGM:
                 and "embeddings.word_embeddings" in name
                 and "weight" in name
             ):
-                print(f"Detected embedding parameter: {name}")
                 return name
         raise ValueError(
             "No embedding layer found with 'embeddings.word_embeddings' in name"
