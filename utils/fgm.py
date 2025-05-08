@@ -9,7 +9,6 @@ class FGM:
         self.emb_name = self._auto_detect_emb_name()
 
     def _auto_detect_emb_name(self):
-        # Try to auto-detect the embedding weight name (e.g., 'bert.embeddings.word_embeddings.weight')
         for name, param in self.model.named_parameters():
             if (
                 param.requires_grad

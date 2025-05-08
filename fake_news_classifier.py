@@ -336,6 +336,7 @@ class FakeNewsClassifier:
             self.classifier.load_state_dict(model_dict["model_state_dict"])  # weights
             self.optimizer.load_state_dict(model_dict["optimizer_state_dict"])
             self.metrics = model_dict.get("metrics", {})
+            self.history = pd.DataFrame(model_dict.get("history", []))
 
             print(self.metrics)
 
