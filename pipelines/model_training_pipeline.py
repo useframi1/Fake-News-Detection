@@ -22,6 +22,9 @@ class ModelTrainingPipeline:
             self.config["classifier_config_path"], self.train_data["label"].nunique()
         )
 
+        print(f"Using Device: {model.device}")
+        print(f"Model Name: {model.config['model_name']}")
+
         print(f"{"="*5} Training model... {"="*5}")
         model.fit(
             self.train_data["content"],
