@@ -16,6 +16,7 @@ from utils.utils import (
     get_tokenizer,
 )
 from utils.fgm import FGM
+from utils.pgd import PGD
 from datetime import datetime
 from tqdm import tqdm
 
@@ -54,6 +55,7 @@ class FakeNewsClassifier:
                 factor=self.model_config["lr_scheduler"]["factor"],
             )
             self.fgm = FGM(self.classifier)
+            self.pgd = PGD(self.classifier, epsilon=1.0, alpha=0.3, steps=3)
 
             torch.cuda.empty_cache()
         except Exception as e:
@@ -105,11 +107,25 @@ class FakeNewsClassifier:
             loss = self.criterion(outputs, labels)
             loss.backward()
 
-            self.fgm.attack()
-            outputs_adv = self.classifier(input_ids, attention_mask, token_type_ids)
-            loss_adv = self.criterion(outputs_adv, labels)
-            loss_adv.backward()
-            self.fgm.restore()
+            self.pgd.backup_grad()
+
+            for t in range(self.pgd.steps):
+                self.pgd.attack(is_first_attack=(t == 0))
+                if t != self.pgd.steps - 1:
+                    self.classifier.zero_grad()
+                else:
+                    self.pgd.restore_grad()
+                outputs_adv = self.classifier(input_ids, attention_mask, token_type_ids)
+                loss_adv = self.criterion(outputs_adv, labels)
+                loss_adv.backward()
+
+            self.pgd.restore()
+
+            # self.fgm.attack()
+            # outputs_adv = self.classifier(input_ids, attention_mask, token_type_ids)
+            # loss_adv = self.criterion(outputs_adv, labels)
+            # loss_adv.backward()
+            # self.fgm.restore()
 
             self.optimizer.step()
 

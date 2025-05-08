@@ -2,16 +2,26 @@ import torch
 
 
 class PGD:
-    def __init__(
-        self, model, epsilon=1.0, alpha=0.3, steps=3, emb_name="word_embeddings"
-    ):
+    def __init__(self, model, epsilon=1.0, alpha=0.3, steps=3):
         self.model = model
         self.epsilon = epsilon
         self.alpha = alpha
         self.steps = steps
-        self.emb_name = emb_name
+        self.emb_name = self._auto_detect_emb_name()
         self.emb_backup = {}
         self.grad_backup = {}
+
+    def _auto_detect_emb_name(self):
+        for name, param in self.model.named_parameters():
+            if (
+                param.requires_grad
+                and "embeddings.word_embeddings" in name
+                and "weight" in name
+            ):
+                return name
+        raise ValueError(
+            "No embedding layer found with 'embeddings.word_embeddings' in name"
+        )
 
     def attack(self, is_first_attack=False):
         for name, param in self.model.named_parameters():
