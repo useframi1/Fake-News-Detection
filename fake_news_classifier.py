@@ -14,6 +14,7 @@ from utils.utils import (
     set_device,
     load_model,
     get_tokenizer,
+    get_adversarial_training_method,
 )
 from utils.fgm import FGM
 from utils.pgd import PGD
@@ -54,8 +55,19 @@ class FakeNewsClassifier:
                 patience=self.model_config["lr_scheduler"]["patience"],
                 factor=self.model_config["lr_scheduler"]["factor"],
             )
-            self.fgm = FGM(self.classifier)
-            self.pgd = PGD(self.classifier, epsilon=1.0, alpha=0.3, steps=3)
+            self.do_adversarial_training = self.model_config["do_adversarial_training"]
+            if self.do_adversarial_training:
+                self.adverarial_training_method = self.model_config[
+                    "adversarial_training"
+                ]["method"]
+                self.adversarial_training_config = self.model_config[
+                    "adversarial_training"
+                ]["config"]
+                self.adversarial_model = get_adversarial_training_method(
+                    self.adverarial_training_method,
+                    self.classifier,
+                    **self.adversarial_training_config,
+                )
 
             torch.cuda.empty_cache()
         except Exception as e:
@@ -107,25 +119,10 @@ class FakeNewsClassifier:
             loss = self.criterion(outputs, labels)
             loss.backward()
 
-            self.pgd.backup_grad()
-
-            for t in range(self.pgd.steps):
-                self.pgd.attack(is_first_attack=(t == 0))
-                if t != self.pgd.steps - 1:
-                    self.classifier.zero_grad()
-                else:
-                    self.pgd.restore_grad()
-                outputs_adv = self.classifier(input_ids, attention_mask, token_type_ids)
-                loss_adv = self.criterion(outputs_adv, labels)
-                loss_adv.backward()
-
-            self.pgd.restore()
-
-            # self.fgm.attack()
-            # outputs_adv = self.classifier(input_ids, attention_mask, token_type_ids)
-            # loss_adv = self.criterion(outputs_adv, labels)
-            # loss_adv.backward()
-            # self.fgm.restore()
+            if self.do_adversarial_training:
+                self.adversarial_model.run(
+                    self.criterion, input_ids, attention_mask, token_type_ids, labels
+                )
 
             self.optimizer.step()
 

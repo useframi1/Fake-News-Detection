@@ -57,3 +57,18 @@ class PGD:
         for name, param in self.model.named_parameters():
             if param.requires_grad and param.grad is not None:
                 param.grad = self.grad_backup[name]
+
+    def run(self, criterion, input_ids, attention_mask, token_type_ids, labels):
+        self.backup_grad()
+
+        for t in range(self.steps):
+            self.attack(is_first_attack=(t == 0))
+            if t != self.steps - 1:
+                self.model.zero_grad()
+            else:
+                self.restore_grad()
+            outputs_adv = self.model(input_ids, attention_mask, token_type_ids)
+            loss_adv = criterion(outputs_adv, labels)
+            loss_adv.backward()
+
+        self.restore()

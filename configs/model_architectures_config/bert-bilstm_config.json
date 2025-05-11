@@ -14,5 +14,14 @@
         "mode": "max",
         "patience": 2,
         "factor": 0.1
+    },
+    "do_adversarial_training": true,
+    "adversarial_training": {
+        "method": "pgd",
+        "config": {
+            "epsilon": 0.5,
+            "alpha": 0.3,
+            "steps": 3
+        }
     }
 }

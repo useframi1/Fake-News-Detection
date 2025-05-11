@@ -36,3 +36,10 @@ class FGM:
             if name in self.backup:
                 param.data = self.backup[name]
         self.backup = {}
+
+    def run(self, criterion, input_ids, attention_mask, token_type_ids, labels):
+        self.attack()
+        outputs_adv = self.model(input_ids, attention_mask, token_type_ids)
+        loss_adv = criterion(outputs_adv, labels)
+        loss_adv.backward()
+        self.restore()
