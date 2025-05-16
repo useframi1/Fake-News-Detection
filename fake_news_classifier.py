@@ -310,8 +310,8 @@ class FakeNewsClassifier:
                 x=self.history["epoch"],
                 y=self.history["train_acc"],
                 mode="lines+markers",
-                name="Train Accuracy",
-                line=dict(color="blue"),
+                name="Training Accuracy",
+                line=dict(color="#bec2c8", width=2),
             )
         )
 
@@ -322,16 +322,31 @@ class FakeNewsClassifier:
                     y=self.history["val_acc"],
                     mode="lines+markers",
                     name="Validation Accuracy",
-                    line=dict(color="orange"),
+                    line=dict(color="#f25c4e", width=2),
                 )
             )
 
         fig.update_layout(
-            title="Accuracy progress Over Epochs",
             xaxis_title="Epoch",
             yaxis_title="Accuracy",
-            template="plotly_dark",
-            legend=dict(x=0, y=1),
+            plot_bgcolor="rgba(0,0,0,0)",  # Transparent plot background
+            paper_bgcolor="rgba(0,0,0,0)",  # Transparent paper background
+            font=dict(color="white"),
+            xaxis=dict(
+                showgrid=False,  # Remove vertical grid lines
+                showline=True,  # Keep the x-axis line
+                linecolor="white",  # Color of the x-axis line
+                zeroline=False,  # Remove zero line
+            ),
+            yaxis=dict(
+                showgrid=False,  # Remove horizontal grid lines
+                showline=True,  # Keep the y-axis line
+                linecolor="white",  # Color of the y-axis line
+                zeroline=False,  # Remove zero line
+            ),
+            legend=dict(
+                x=0.01, y=0.99, bgcolor="rgba(0,0,0,0)", bordercolor="rgba(0,0,0,0)"
+            ),
         )
 
         fig.show()
@@ -343,7 +358,7 @@ class FakeNewsClassifier:
             self.model_config = model_dict["config"]
 
             self.classifier = get_model_architecture(
-                "bert-bilstm", self.model_config, self.num_classes
+                self.config["model_name"], self.model_config, self.num_classes
             ).to(self.device)
 
             self.classifier.load_state_dict(model_dict["model_state_dict"])  # weights

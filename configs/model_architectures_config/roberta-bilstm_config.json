@@ -9,5 +9,11 @@
     "num_layers": 1,
     "roberta_dropout": 0.1,
     "lstm_out_dropout": 0.3,
-    "weight_decay": 0.01
+    "weight_decay": 0.01,
+    "lr_scheduler": {
+        "mode": "max",
+        "patience": 2,
+        "factor": 0.1
+    },
+    "do_adversarial_training": false
 }

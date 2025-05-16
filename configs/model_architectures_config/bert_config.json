@@ -5,5 +5,12 @@
     "optimizer": "adamW",
     "learning_rate": 5e-5,
     "epochs": 4,
-    "dropout": 0
+    "dropout": 0,
+    "weight_decay": 1e-3,
+    "lr_scheduler": {
+        "mode": "max",
+        "patience": 2,
+        "factor": 0.1
+    },
+    "do_adversarial_training": false
 }
